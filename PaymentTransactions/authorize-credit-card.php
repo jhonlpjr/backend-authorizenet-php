@@ -1,12 +1,31 @@
 <?php
-  require 'vendor/autoload.php';
-  require_once 'constants/SampleCodeConstants.php';
+error_reporting(E_ERROR | E_PARSE);
+header('Access-Control-Allow-Origin: *');
+header("Access-Control-Allow-Headers: X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Request-Method");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE");
+header("Allow: GET, POST, OPTIONS, PUT, DELETE");
+
+
+  require '../vendor/autoload.php';
+  require_once '../constants/SampleCodeConstants.php';
   use net\authorize\api\contract\v1 as AnetAPI;
   use net\authorize\api\controller as AnetController;
 
   define("AUTHORIZENET_LOG_FILE", "phplog");
 
-function authorizeCreditCard($amount)
+  /*$cardNumber = $_POST['cardNumber'];
+  $expirationDate = $_POST['expirationDate'];
+  $cardCode = $_POST['cardCode'];
+
+  echo "miraloo: " ,  $cardNumber;*/
+
+  $json = file_get_contents('php://input');
+  $data = json_decode($json);
+  //$datos = explode("&", $data);
+
+  //echo "miraloo: " ,  $json->cardNumber;
+
+function authorizeCreditCard($cardNumber, $expirationDate, $cardCode, $amount)
 {
     /* Create a merchantAuthenticationType object with authentication details
        retrieved from the constants file */
@@ -19,9 +38,9 @@ function authorizeCreditCard($amount)
 
     // Create the payment data for a credit card
     $creditCard = new AnetAPI\CreditCardType();
-    $creditCard->setCardNumber("4111111111111111");
-    $creditCard->setExpirationDate("2038-12");
-    $creditCard->setCardCode("123");
+    $creditCard->setCardNumber($cardNumber);
+    $creditCard->setExpirationDate($expirationDate);
+    $creditCard->setCardCode($cardCode);
 
     // Add the payment data to a paymentType object
     $paymentOne = new AnetAPI\PaymentType();
@@ -87,7 +106,7 @@ function authorizeCreditCard($amount)
     $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
 
 
-    if ($response != null) {
+   /* if ($response != null) {
         // Check to see if the API request was successfully received and acted upon
         if ($response->getMessages()->getResultCode() == "Ok") {
             // Since the API request was successful, look for a transaction response
@@ -122,12 +141,12 @@ function authorizeCreditCard($amount)
         }      
     } else {
         echo  "No response returned \n";
-    }
+    }*/
 
-    return $response;
+    echo json_encode($response->getTransactionResponse());
 }
 
 if (!defined('DONT_RUN_SAMPLES')) {
-    authorizeCreditCard("2.23");
+    authorizeCreditCard(strval($data->cardNumber), strval($data->expirationDate), strval($data->cardCode), strval($data->amount));
 }
 ?>
